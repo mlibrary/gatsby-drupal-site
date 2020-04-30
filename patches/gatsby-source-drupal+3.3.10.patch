@@ -1,0 +1,28 @@
+diff --git a/node_modules/gatsby-source-drupal/gatsby-node.js b/node_modules/gatsby-source-drupal/gatsby-node.js
+index 41b0e5f..d28f371 100644
+--- a/node_modules/gatsby-source-drupal/gatsby-node.js
++++ b/node_modules/gatsby-source-drupal/gatsby-node.js
+@@ -75,6 +75,7 @@ exports.sourceNodes = async ({
+     if (!type) return;
+ 
+     const getNext = async (url, data = []) => {
++      console.log(url)
+       if (typeof url === `object`) {
+         // url can be string or object containing href field
+         url = url.href; // Apply any filters configured in gatsby-config.js. Filters
+@@ -151,6 +152,7 @@ exports.sourceNodes = async ({
+     const downloadingFilesActivity = reporter.activityTimer(`Remote file download`);
+     downloadingFilesActivity.start();
+     await asyncPool(concurrentFileRequests, fileNodes, async node => {
++      console.log(node)
+       await downloadFile({
+         node,
+         store,
+@@ -164,6 +166,7 @@ exports.sourceNodes = async ({
+ 
+ 
+   for (const node of nodes.values()) {
++    console.log(node)
+     node.internal.contentDigest = createContentDigest(node);
+     createNode(node);
+   }

@@ -28,6 +28,7 @@ function removeTrailingSlash(s) {
   [ [ [] ] ]
 */
 function sanitizeDrupalView(data) {
+console.log(data)
   // Everything is wrapped in an array because Drupal views.
   if (Array.isArray(data)) {
     // We're looking for objects {}. If it's not an array
@@ -44,6 +45,7 @@ function sanitizeDrupalView(data) {
   sourceNodes is only called once per plugin by Gatsby.
 */
 exports.sourceNodes = async ({ actions, createContentDigest }, { baseUrl }) => {
+console.log(actions)
   const { createTypes, createNode } = actions
   const typeDefs = `
     type HTML {
@@ -67,6 +69,7 @@ exports.sourceNodes = async ({ actions, createContentDigest }, { baseUrl }) => {
       }
     */
   function processDrupalNavData(data) {
+console.log(data)
     return data.map(item => {
       let navItem = {
         text: item.text,
@@ -93,6 +96,7 @@ exports.sourceNodes = async ({ actions, createContentDigest }, { baseUrl }) => {
     Create navigation nodes.
   */
   function createNavNode(id, type, data) {
+console.log(id)
     const processedData = processDrupalNavData(data)
 
     const nodeMeta = {
@@ -151,7 +155,7 @@ const drupal_node_types_we_care_about = [
 exports.onCreateNode = async ({ node, actions }, { baseUrl }) => {
   const { createNodeField } = actions
   const baseUrlWithoutTrailingSlash = removeTrailingSlash(baseUrl)
-
+console.log(node)
   // Check for Drupal node type.
   // Substring off the "node__" part.
   if (
@@ -178,6 +182,7 @@ exports.onCreateNode = async ({ node, actions }, { baseUrl }) => {
   }
 
   async function createParentChildFields(fieldId, name) {
+console.log(name)
     if (node[fieldId]) {
       const url = baseUrlWithoutTrailingSlash + node[fieldId]
       const data = await fetch(url)
@@ -257,7 +262,7 @@ exports.createPages = ({ actions, graphql }, { baseUrl }) => {
 
     function getTemplate(node) {
       const { field_machine_name } = node.relationships.field_design_template
-
+console.log(node)
       switch (field_machine_name) {
         case 'basic':
           return basicTemplate
