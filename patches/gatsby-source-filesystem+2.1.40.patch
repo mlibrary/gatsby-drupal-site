@@ -1,5 +1,5 @@
 diff --git a/node_modules/gatsby-source-filesystem/extend-file-node.js b/node_modules/gatsby-source-filesystem/extend-file-node.js
-index dd5550d..febdac5 100644
+index dd5550d..5055cd1 100644
 --- a/node_modules/gatsby-source-filesystem/extend-file-node.js
 +++ b/node_modules/gatsby-source-filesystem/extend-file-node.js
 @@ -35,7 +35,7 @@ module.exports = ({
@@ -11,3 +11,31 @@ index dd5550d..febdac5 100644
        }
      }
    };
+diff --git a/node_modules/gatsby-source-filesystem/gatsby-node.js b/node_modules/gatsby-source-filesystem/gatsby-node.js
+index 2cfe1f9..ac908a2 100644
+--- a/node_modules/gatsby-source-filesystem/gatsby-node.js
++++ b/node_modules/gatsby-source-filesystem/gatsby-node.js
+@@ -60,6 +60,7 @@ const createFSMachine = ({
+       op,
+       path
+     }) => {
++      console.log(path)
+       switch (op) {
+         case `delete`:
+           return deletePathNode(path);
+@@ -132,6 +133,7 @@ const createFSMachine = ({
+         if (state.matches(`BOOTSTRAP.BOOTSTRAPPED`)) {
+           reporter.info(`added ${pathType} at ${path}`);
+         }
++        console.log(path)
+ 
+         createAndProcessNode(path).catch(err => reporter.error(err));
+       },
+@@ -145,6 +147,7 @@ const createFSMachine = ({
+         if (state.matches(`BOOTSTRAP.BOOTSTRAPPED`)) {
+           reporter.info(`${pathType} deleted at ${path}`);
+         }
++        console.log(path)
+ 
+         deletePathNode(path);
+       },

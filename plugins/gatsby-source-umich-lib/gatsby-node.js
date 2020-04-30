@@ -45,7 +45,6 @@ console.log(data)
   sourceNodes is only called once per plugin by Gatsby.
 */
 exports.sourceNodes = async ({ actions, createContentDigest }, { baseUrl }) => {
-console.log(actions)
   const { createTypes, createNode } = actions
   const typeDefs = `
     type HTML {
@@ -56,6 +55,7 @@ console.log(actions)
       field_caption_text: HTML
     }
   `
+  console.log(typeDefs)
 
   createTypes(typeDefs)
 
@@ -96,7 +96,7 @@ console.log(data)
     Create navigation nodes.
   */
   function createNavNode(id, type, data) {
-console.log(id)
+console.log(data)
     const processedData = processDrupalNavData(data)
 
     const nodeMeta = {
