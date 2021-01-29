@@ -41,15 +41,19 @@ export const query = graphql`
           postal_code
           administrative_area
         }
+        field_display_hours_
         relationships {
           field_hours_open {
             ...hoursFragment
           }
-        }
-      }
-      field_parent_location {
-        ... on node__location {
-          title
+          field_parent_location {
+            field_display_hours_
+            relationships {
+              field_hours_open {
+                ...hoursFragment
+              }
+            }
+          }
         }
       }
       field_floor {
@@ -78,17 +82,15 @@ export const query = graphql`
         }
       }
       field_visit {
-        description {
-          processed
-        }
-      }
-      field_amenities {
+        weight
         description {
           processed
         }
       }
       field_panels {
         ...linkPanelFragment
+        ...cardPanelFragment
+        ...textPanelFragment
       }
     }
   }

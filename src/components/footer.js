@@ -41,7 +41,7 @@ const links = [
       },
       {
         text: 'Send us an email',
-        to: '/ask-librarian',
+        to: 'https://umich.qualtrics.com/jfe/form/SV_2bpfeZMnAK2ozhr',
         icon: 'mail_outline',
       },
       {
@@ -116,7 +116,7 @@ function Footer() {
         <div
           css={{
             paddingTop: SPACING['2XL'],
-            paddingBottom: SPACING['2XL'],
+            paddingBottom: SPACING['L'],
             [MEDIA_QUERIES.LARGESCREEN]: {
               paddingTop: SPACING['3XL'],
               columns: '3',
@@ -226,6 +226,23 @@ function Footer() {
             </p>
           </section>
         </div>
+
+        <p
+          css={{
+            marginBottom: SPACING['2XL'],
+          }}
+        >
+          Have a question about this website?{' '}
+          <a
+            href="https://umich.qualtrics.com/jfe/form/SV_87ZJbL09VT6wZvL"
+            css={{
+              textDecoration: 'underline',
+            }}
+          >
+            Contact the website team
+          </a>
+          .
+        </p>
       </Margins>
       <div
         css={{
@@ -237,7 +254,7 @@ function Footer() {
         <Margins>
           <span
             css={{
-              marginRight: SPACING['2XL'],
+              marginRight: SPACING['XL'],
               display: 'block',
               paddingBottom: SPACING['XS'],
               [MEDIA_QUERIES.LARGESCREEN]: {
@@ -249,7 +266,11 @@ function Footer() {
             © {year}, Regents of the University of Michigan
           </span>
 
-          <span>
+          <span
+            css={{
+              marginRight: SPACING['XL'],
+            }}
+          >
             Built with the{' '}
             <a
               href="https://design-system.lib.umich.edu/"
@@ -257,6 +278,15 @@ function Footer() {
             >
               U-M Library Design System
             </a>
+          </span>
+
+          <span>
+            <PlainLink
+              css={{ textDecoration: 'underline' }}
+              to="/release-notes"
+            >
+              Release notes
+            </PlainLink>
           </span>
         </Margins>
       </div>

@@ -20,7 +20,7 @@ function processContacts(userData) {
     return null
   }
 
-  return userData.reduce((memo, user) => {
+  const userList = userData.reduce((memo, user) => {
     const {
       name,
       field_user_display_name,
@@ -51,6 +51,23 @@ function processContacts(userData) {
       image,
     })
   }, [])
+
+  const userListSorted = userList.sort(function(a, b) {
+    const nameA = a.name.toUpperCase()
+    const nameB = b.name.toUpperCase()
+
+    if (nameA < nameB) {
+      return -1
+    }
+
+    if (nameA > nameB) {
+      return 1
+    }
+
+    return 0
+  })
+
+  return userListSorted
 }
 
 function CollectingAreaTemplate({ data, ...rest }) {

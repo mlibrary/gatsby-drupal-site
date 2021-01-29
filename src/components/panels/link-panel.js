@@ -1,5 +1,5 @@
 import React from 'react'
-import { SPACING, Heading, LINK_STYLES, COLORS } from '@umich-lib/core'
+import { SPACING, Heading, LINK_STYLES, COLORS, List } from '@umich-lib/core'
 import Link from '../link'
 import usePageContextByDrupalNodeID from '../../hooks/use-page-context-by-drupal-node-id'
 import { PanelTemplate } from './index'
@@ -23,8 +23,22 @@ export default function LinkPanel({ data }) {
 
         return linkObj
       })
+      const moreLink = data.field_view_all
+        ? {
+            text: data.field_view_all.title,
+            to: data.field_view_all.uri,
+          }
+        : null
+      const hasTopBorder = data.field_border === 'yes'
 
-      return <BulletedLinkList title={data.field_title} links={links} />
+      return (
+        <BulletedLinkList
+          title={data.field_title}
+          links={links}
+          moreLink={moreLink}
+          hasTopBorder={hasTopBorder}
+        />
+      )
     case '2_column_db_link_list':
       return <DatabaseLinkList data={data} />
     case 'related_links':
@@ -34,27 +48,23 @@ export default function LinkPanel({ data }) {
   }
 }
 
-function BulletedLinkList({ title, links }) {
+function BulletedLinkList({ title, links, moreLink, hasTopBorder = false }) {
   return (
     <section
       css={{
-        paddingTop: SPACING['XL'],
+        paddingTop: hasTopBorder ? SPACING['XL'] : 0,
         marginTop: SPACING['XL'],
         marginBottom: SPACING['XL'],
-        borderTop: `solid 1px ${COLORS.neutral['100']}`,
+        borderTop: hasTopBorder ? `solid 1px ${COLORS.neutral['100']}` : 'none',
       }}
     >
       <Heading level={2} size="M">
         {title}
       </Heading>
-      <ul
+      <List
+        type="bulleted"
         css={{
-          marginTop: SPACING['S'],
-          paddingLeft: SPACING['M'],
-          listStyle: 'disc',
-          '> li:not(:last-of-type)': {
-            marginBottom: SPACING['XS'],
-          },
+          marginTop: SPACING['M'],
         }}
       >
         {links.map(({ text, to }) => (
@@ -62,17 +72,27 @@ function BulletedLinkList({ title, links }) {
             <Link to={to}>{text}</Link>
           </li>
         ))}
-      </ul>
+      </List>
+
+      {moreLink && (
+        <p
+          css={{
+            marginTop: SPACING['M'],
+          }}
+        >
+          <Link to={moreLink.to}>{moreLink.text}</Link>
+        </p>
+      )}
     </section>
   )
 }
 
 function DatabaseLinkList({ data }) {
-  const { field_title, field_link } = data
+  const { field_title, field_link, field_view_all } = data
 
   return (
     <section>
-      <Heading level={2} size="XL">
+      <Heading level={2} size="M">
         {field_title}
       </Heading>
       <ol
@@ -105,12 +125,9 @@ function DatabaseLinkList({ data }) {
         ))}
       </ol>
 
-      <Link
-        kind="list-strong"
-        to="https://search.lib.umich.edu/databases/browse"
-      >
-        View all databases
-      </Link>
+      {field_view_all && (
+        <Link to={field_view_all.uri}>{field_view_all.title}</Link>
+      )}
     </section>
   )
 }

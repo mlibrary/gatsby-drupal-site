@@ -9,11 +9,12 @@ import Breadcrumb from '../components/breadcrumb'
 import HorizontalNavigation from '../components/navigation/horizontal-navigation'
 import Panels from '../components/panels'
 import getNode from '../utils/get-node'
+import transformNodePanels from '../utils/transform-node-panels'
 
 export default function FullWidthTemplate({ data, ...rest }) {
   const node = getNode(data)
-  const { field_title_context, body, fields, relationships } = node
-  const panels = relationships.field_panels
+  const { field_title_context, body, fields } = node
+  const { bodyPanels, fullPanels } = transformNodePanels({ node })
 
   return (
     <TemplateLayout node={node}>
@@ -23,7 +24,7 @@ export default function FullWidthTemplate({ data, ...rest }) {
           size="3XL"
           level={1}
           css={{
-            marginBottom: panels.length ? '0' : SPACING['XL'],
+            marginBottom: fullPanels.length ? '0' : SPACING['XL'],
           }}
         >
           {field_title_context}
@@ -38,14 +39,16 @@ export default function FullWidthTemplate({ data, ...rest }) {
       {body && (
         <Margins
           css={{
-            marginBottom: panels.length ? '0' : SPACING['5XL'],
+            marginBottom: fullPanels.length ? '0' : SPACING['5XL'],
           }}
         >
           <HTML html={body.processed} />
+
+          <Panels data={bodyPanels} />
         </Margins>
       )}
 
-      <Panels data={panels} />
+      <Panels data={fullPanels} />
     </TemplateLayout>
   )
 }

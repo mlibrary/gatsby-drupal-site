@@ -22,6 +22,8 @@ import LinkPanel from './link-panel'
 import DestinationHorizontalPanel from './destination-horizontal-panel'
 import getParentTitle from '../../utils/get-parent-title'
 import CustomPanel from './custom-panel'
+import Callout from '../../maybe-design-system/callout'
+import Image from '../image'
 
 import { StateProvider } from '../use-state'
 
@@ -66,6 +68,7 @@ function PanelTemplate({ title, children, shaded, ...rest }) {
 function PanelList({ largeScreenTwoColumn, children, twoColumns, ...rest }) {
   const panelListGridStyles = {
     [MEDIA_QUERIES.LARGESCREEN]: {
+      marginBottom: SPACING['XL'],
       display: 'grid',
       gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
       gridGap: `${SPACING['XL']} ${SPACING['M']}`,
@@ -148,7 +151,7 @@ function CardPanel({ data, headingLevel = 2 }) {
             >
               <Icon d={icons['address']} />
             </span>
-            <Address data={data} />
+            <Address node={data} />
           </div>
           <div
             css={{
@@ -209,38 +212,87 @@ function CardPanel({ data, headingLevel = 2 }) {
   )
 }
 
+function MarginsWrapper({ useMargins = false, children }) {
+  if (useMargins) {
+    return <Margins>{children}</Margins>
+  }
+
+  return children
+}
+
 function TextPanel({ data }) {
   const title = data.field_title
+  const placement = data.field_placement
   const template = data.relationships.field_text_template.field_machine_name
   const cards = data.relationships.field_text_card
 
-  if (template === 'body_width_text') {
+  if (template === 'callout') {
     return (
-      <div
-        css={{
-          marginTop: SPACING['XL'],
-        }}
-      >
-        {cards.map(card => (
-          <section
+      <MarginsWrapper useMargins={placement !== 'body'}>
+        <Callout
+          intent="warning"
+          css={{
+            maxWidth: placement === 'body' ? '38rem' : '100%',
+          }}
+        >
+          <Heading
+            level={2}
+            size="M"
             css={{
-              paddingTop: SPACING['XL'],
-              borderTop: `solid 1px ${COLORS.neutral['100']}`,
+              marginBottom: SPACING['XS'],
             }}
           >
-            <Heading
-              level={2}
-              size="M"
+            {title}
+          </Heading>
+
+          <HTML
+            html={cards[0].field_body.processed}
+            css={{
+              '> *': {
+                maxWidth: placement === 'body' ? '38rem' : '100%',
+              },
+            }}
+          />
+        </Callout>
+      </MarginsWrapper>
+    )
+  }
+
+  if (template === 'body_width_text' || template === 'text_group') {
+    const hasTopBorder = data.field_border === 'yes'
+    const hasMarginTop = template === 'body_width_text'
+    const useMargins = placement !== 'body' && template === 'body_width_text'
+
+    return (
+      <MarginsWrapper useMargins={useMargins}>
+        <div
+          css={{
+            marginTop: hasMarginTop ? SPACING['XL'] : 0,
+          }}
+        >
+          {cards.map(card => (
+            <section
               css={{
-                marginBottom: SPACING['XS'],
+                paddingTop: hasTopBorder ? SPACING['XL'] : 0,
+                borderTop: hasTopBorder
+                  ? `solid 1px ${COLORS.neutral['100']}`
+                  : 'none',
               }}
             >
-              {title}
-            </Heading>
-            <HTML html={card.field_body.processed} />
-          </section>
-        ))}
-      </div>
+              <Heading
+                level={2}
+                size="M"
+                css={{
+                  marginBottom: SPACING['L'],
+                }}
+              >
+                {title}
+              </Heading>
+              <HTML html={card.field_body.processed} />
+            </section>
+          ))}
+        </div>
+      </MarginsWrapper>
     )
   }
 
@@ -273,7 +325,7 @@ function TextPanel({ data }) {
           >
             <Heading
               level={2}
-              size="L"
+              size="M"
               css={{
                 marginBottom: SPACING['M'],
               }}
@@ -318,6 +370,63 @@ function TextPanel({ data }) {
             </li>
           ))}
         </PanelList>
+      </PanelTemplate>
+    )
+  }
+
+  if (template === 'image_text_body') {
+    const items = cards.map(card => {
+      return {
+        heading: card.field_title,
+        html: card.field_body.processed,
+        image:
+          card.relationships.field_text_image.relationships.field_media_image
+            .localFile.childImageSharp.fluid,
+        imageAlt:
+          card.relationships.field_text_image.relationships.field_media_image
+            .relationships?.media__image[0]?.field_media_image.alt,
+      }
+    })
+
+    return (
+      <PanelTemplate title={title}>
+        {items.map(({ heading, html, image, imageAlt }, i) => (
+          <section
+            key={i + html}
+            css={{
+              display: 'flex',
+              marginBottom: SPACING['L'],
+              paddingBottom: SPACING['M'],
+              borderBottom: `solid 1px ${COLORS.neutral['100']}`,
+            }}
+          >
+            <div
+              css={{
+                width: '8rem',
+                marginRight: SPACING['L'],
+                flexShrink: '0',
+              }}
+            >
+              <Image image={image} alt={imageAlt} />
+            </div>
+            <div>
+              {heading && (
+                <Heading
+                  level={title ? 2 : 2} // Use heading level 3 if has (h2) panel title.
+                  size="S"
+                  css={{
+                    marginTop: `0 !important`,
+                    marginBottom: SPACING['XS'],
+                  }}
+                >
+                  {heading}
+                </Heading>
+              )}
+
+              <HTML html={html} />
+            </div>
+          </section>
+        ))}
       </PanelTemplate>
     )
   }

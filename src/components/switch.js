@@ -31,9 +31,9 @@ export default function Switch({ on, label, children, ...rest }) {
           height: '24px',
           width: '58px',
           marginRight: SPACING['XS'],
-          background: on ? COLORS.green['400'] : COLORS.neutral['300'],
+          background: on ? COLORS.green['500'] : COLORS.neutral['300'],
           border: `solid 2px`,
-          borderColor: on ? COLORS.green['400'] : COLORS.neutral['300'],
+          borderColor: on ? COLORS.green['500'] : COLORS.neutral['300'],
           borderRadius: '16px',
           '[data-switch-knob]': {
             position: 'absolute',

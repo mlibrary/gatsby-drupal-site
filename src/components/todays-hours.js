@@ -22,8 +22,8 @@ export default function Hours({ node }) {
   const hours = displayHours({ node, now })
 
   if (!hours) {
-    return 'n/a'
+    return 'Today: n/a'
   }
 
-  return <span aria-label={hours.label}>{hours.text}</span>
+  return <span aria-label={hours.label}>Today: {hours.text}</span>
 }

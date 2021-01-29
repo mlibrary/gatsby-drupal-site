@@ -1,10 +1,6 @@
 import React from 'react'
 
-import {
-  COLORS,
-  SPACING,
-  Margins,
-} from '@umich-lib/core'
+import { COLORS, SPACING, Margins } from '@umich-lib/core'
 import { Link as GatsbyLink } from 'gatsby'
 
 export default function SkipLinks() {
@@ -47,9 +43,7 @@ export default function SkipLinks() {
             <a href="#maincontent">Skip to main content</a>
           </li>
           <li>
-            <a href="#ask-a-librarian-chat">
-              Skip to Ask a Librarian chat
-            </a>
+            <a href="#chat">Skip to Ask a Librarian chat</a>
           </li>
           <li>
             <GatsbyLink to="/site-map">View site map</GatsbyLink>

@@ -19,7 +19,7 @@ export default function HoursLitePanel({ data }) {
 
   return (
     <section>
-      <Heading level={2} size="XL">
+      <Heading level={2} size="M">
         {field_title}
       </Heading>
 

@@ -2,9 +2,10 @@ const path = require(`path`)
 const { fetch } = require('./fetch')
 const { createBreadcrumb } = require(`./create-breadcrumb`)
 const { createStaffNodes } = require(`./create-staff-nodes`)
-const https = require('https')
-const fs = require('fs')
-const readline = require('readline')
+const {
+  createNetlifyRedirectsFile,
+  createLocalRedirects,
+} = require('./create-redirects')
 
 /**
  * Implement Gatsby's Node APIs in this file.
@@ -140,6 +141,13 @@ console.log(data)
   return
 }
 
+/*
+  This is important for setting up breadcrumbs, slug, and
+  page title for nodes that become pages.
+
+  Take the the graphql node __typename and trim "node__" from it.
+  so "node__events_and_exhibits" => "events_and_exhibits".
+*/
 const drupal_node_types_we_care_about = [
   'page',
   'building',
@@ -149,6 +157,7 @@ const drupal_node_types_we_care_about = [
   'floor_plan',
   'department',
   'news',
+  'events_and_exhibits',
 ]
 
 // Create a slug for each page and set it as a field on the node.
@@ -208,29 +217,9 @@ console.log(name)
 // Implement the Gatsby API “createPages”. This is called once the
 // data layer is bootstrapped to let plugins create pages from data.
 exports.createPages = ({ actions, graphql }, { baseUrl }) => {
-  const readInterface = readline.createInterface({
-    input: fs.createReadStream('public/_redirects'),
-  })
-  const { createRedirect } = actions
-  readInterface.on('line', function(line) {
-    if (line) {
-      const urls = line.split(' ')
-      /*
-      console.log(
-        'Creating client-side redirect from ' + urls[0] + ' to ' + urls[1]
-      )
-      */
-      createRedirect({
-        fromPath: urls[0],
-        toPath: urls[1],
-        isPermanent: true,
-        redirectInBrowser: true,
-        force: true,
-      })
-    }
-  })
+  const { createPage, createRedirect } = actions
 
-  const { createPage } = actions
+  createLocalRedirects({ createRedirect })
 
   return new Promise((resolve, reject) => {
     const basicTemplate = path.resolve(`src/templates/basic.js`)
@@ -259,6 +248,11 @@ exports.createPages = ({ actions, graphql }, { baseUrl }) => {
     */
     const newsLandingTemplate = path.resolve(`src/templates/news-landing.js`)
     const newsTemplate = path.resolve(`src/templates/news.js`)
+
+    /*
+      Events and Exhibits templates.
+    */
+    const eventTemplate = path.resolve(`src/templates/event.js`)
 
     function getTemplate(node) {
       const { field_machine_name } = node.relationships.field_design_template
@@ -295,6 +289,8 @@ console.log(node)
           return newsLandingTemplate
         case 'news':
           return newsTemplate
+        case 'event_exhibit':
+          return eventTemplate
         default:
           return null
       }
@@ -369,6 +365,7 @@ console.log(node)
                     children
                   }
                   drupal_internal__nid
+                  field_seo_keywords
                   body {
                     summary
                   }
@@ -576,6 +573,33 @@ console.log(node)
                 }
               }
             }
+            events: allNodeEventsAndExhibits(
+              filter: {
+                relationships: {
+                  field_design_template: {
+                    field_machine_name: { eq: "event_exhibit" }
+                  }
+                }
+              }
+            ) {
+              edges {
+                node {
+                  __typename
+                  title
+                  drupal_internal__nid
+                  fields {
+                    slug
+                    title
+                    breadcrumb
+                  }
+                  relationships {
+                    field_design_template {
+                      field_machine_name
+                    }
+                  }
+                }
+              }
+            }
           }
         `
       ).then(result => {
@@ -594,6 +618,7 @@ console.log(node)
           floorPlans,
           departments,
           news,
+          events,
         } = result.data
         const edges = pages.edges
           .concat(sections.edges)
@@ -603,6 +628,7 @@ console.log(node)
           .concat(floorPlans.edges)
           .concat(departments.edges)
           .concat(news.edges)
+          .concat(events.edges)
 
         edges.forEach(({ node }) => {
           const template = getTemplate(node)
@@ -651,22 +677,5 @@ console.log(node)
 }
 
 exports.onPreBootstrap = async ({}, { baseUrl }) => {
-  const dir = 'public'
-  if (!fs.existsSync(dir)) {
-    fs.mkdirSync(dir)
-  }
-  const file = fs.createWriteStream('public/_redirects')
-  const url = removeTrailingSlash(baseUrl)
-
-  https.get(url + '/_redirects', function(response) {
-    response.pipe(file)
-    file.on('finish', function() {
-      console.log('_redirects file downloaded')
-    })
-    file.on('error', function() {
-      console.log('There was an error downloading _redirects file')
-    })
-  })
-
-  return
+  createNetlifyRedirectsFile({ baseUrl: removeTrailingSlash(baseUrl) })
 }

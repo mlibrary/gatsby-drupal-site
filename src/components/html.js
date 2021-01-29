@@ -8,6 +8,7 @@ import Link from './link'
 import DrupalEntity from './drupal-entity'
 import Callout from '../maybe-design-system/callout'
 import Blockquote from '../maybe-design-system/blockquote'
+import Table from './table'
 
 /**
   Headings
@@ -62,6 +63,14 @@ const renderHast = new rehypeReact({
         return <Callout>{children}</Callout>
       }
 
+      if (className === 'umich-lib-alert') {
+        return (
+          <Callout intent="warning" alert={true}>
+            {children}
+          </Callout>
+        )
+      }
+
       return <Text>{children}</Text>
     },
     strong: ({ children }) => (
@@ -69,7 +78,7 @@ const renderHast = new rehypeReact({
     ),
     ul: ({ children }) => <List type="bulleted">{children}</List>,
     ol: ({ children }) => <List type="numbered">{children}</List>,
-    br: () => null,
+    br: () => <br />,
     em: props => <em {...props} css={{ fontStyle: 'italic' }} />,
     text: Text,
     lede: ({ children, ...other }) => (
@@ -91,6 +100,7 @@ const renderHast = new rehypeReact({
         }}
       />
     ),
+    table: Table,
   },
 
   // A workaround to replace the container div created by rehype-react with a React fragment.
@@ -107,10 +117,10 @@ const renderHast = new rehypeReact({
   },
 }).Compiler
 
-export default ({ html }) => {
+export default ({ html, ...rest }) => {
   const tree = unified()
     .use(rehype, { fragment: true })
     .parse(html)
 
-  return <Prose>{renderHast(tree)}</Prose>
+  return <Prose {...rest}>{renderHast(tree)}</Prose>
 }

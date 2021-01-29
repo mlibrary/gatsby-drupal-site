@@ -15,6 +15,10 @@ export default function useFloorPlan(bid, fid) {
     `
   )
 
+  if (!bid && !fid) {
+    return null
+  }
+
   const { node } = data.allNodeFloorPlan.edges.find(({ node }) => {
     const { field_room_building, field_floor } = node.relationships
 

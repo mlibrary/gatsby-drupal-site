@@ -9,20 +9,7 @@ export const query = graphql`
       field_panel_group {
         __typename
         ...linkPanelFragment
-        ... on paragraph__hours_panel_lite {
-          id
-          field_title
-          relationships {
-            field_cards {
-              ... on Node {
-                __typename
-                ...locationFragment
-                ...roomFragment
-                ...buildingFragment
-              }
-            }
-          }
-        }
+        ...textPanelFragment
       }
     }
   }

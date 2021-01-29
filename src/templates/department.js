@@ -21,6 +21,8 @@ import Prose from '../components/prose'
 import Link from '../components/link'
 import LinkCallout from '../components/link-callout'
 import { stringifyState } from '../utils/get-url-state'
+import transformNodePanels from '../utils/transform-node-panels'
+import Panels from '../components/panels'
 
 function DepartmentTemplate({ data }) {
   const node = data.department
@@ -39,6 +41,7 @@ function DepartmentTemplate({ data }) {
     node,
     staffDirectorySlug: data.staffDirectoryNode.fields.slug,
   })
+  const { bodyPanels, fullPanels } = transformNodePanels({ node })
 
   return (
     <TemplateLayout node={node}>
@@ -126,9 +129,13 @@ function DepartmentTemplate({ data }) {
                 </React.Fragment>
               )}
             </Prose>
+
+            <Panels data={bodyPanels} />
           </Content>
         </Template>
       </Margins>
+
+      <Panels data={fullPanels} />
     </TemplateLayout>
   )
 }

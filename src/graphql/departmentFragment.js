@@ -28,6 +28,11 @@ export const query = graphql`
         field_user_display_name
         name
       }
+      field_panels {
+        __typename
+        ...linkPanelFragment
+        ...textPanelFragment
+      }
       field_media_file {
         relationships {
           field_media_file {

@@ -13,11 +13,12 @@ export const query = graphql`
       }
       field_cards {
         ...buildingCardFragment
-        ...locationFragment
-        ...roomFragment
+        ...locationCardFragment
+        ...roomCardFragment
         ...pageCardFragment
         ...floorPlanFragment
         ...departmentFragment
+        ...sectionCardFragment
       }
     }
   }

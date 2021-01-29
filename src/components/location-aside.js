@@ -4,9 +4,7 @@ import { Heading, Icon, Text, COLORS, SPACING } from '@umich-lib/core'
 import Link from './link'
 import Hours from './todays-hours'
 import icons from '../maybe-design-system/icons'
-import createGoogleMapsURL from './utilities/create-google-maps-url'
-
-import { getFloor } from '../utils'
+import Address from './address'
 
 function LayoutWithIcon({ d, palette, children }) {
   return (
@@ -40,43 +38,8 @@ function LayoutWithIcon({ d, palette, children }) {
   )
 }
 
-function getAddressData(node) {
-  const { field_address_is_different_from_, field_building_address } = node
-  const { field_parent_location, field_room_building } = node.relationships
-
-  if (field_address_is_different_from_ === false) {
-    return field_parent_location.field_building_address
-  }
-
-  return field_building_address
-    ? field_building_address
-    : field_room_building
-    ? field_room_building.field_building_address
-    : field_parent_location
-    ? field_parent_location.field_building_address
-    : {}
-}
-
-function getName({ node }) {
-  const { field_parent_location, field_room_building } = node.relationships
-
-  return field_parent_location
-    ? field_parent_location.title
-    : field_room_building
-    ? field_room_building.title
-    : null
-}
-
 export default function LocationAside({ node }) {
-  const { title, field_phone_number, field_email } = node
-  const {
-    address_line1,
-    locality,
-    administrative_area,
-    postal_code,
-  } = getAddressData(node)
-  const floor = getFloor({ node })
-  const name = getName({ node })
+  const { field_phone_number, field_email } = node
 
   return (
     <React.Fragment>
@@ -101,7 +64,9 @@ export default function LocationAside({ node }) {
           <Text>
             <Hours node={node} />
           </Text>
-          <Link to="/locations-and-hours/hours-view">View all hours</Link>
+          <Link to="/locations-and-hours/hours-view">
+            View hours for all locations
+          </Link>
         </LayoutWithIcon>
       </section>
       <address
@@ -123,20 +88,7 @@ export default function LocationAside({ node }) {
           >
             Address
           </Heading>
-          {floor && <Text>{floor}</Text>}
-          {name && <Text>{name}</Text>}
-          <Text>{address_line1}</Text>
-          <Text>
-            {locality}, {administrative_area} {postal_code}
-          </Text>
-          <Link
-            to={createGoogleMapsURL({
-              query: `${title} ${address_line1} ${locality}`,
-              place_id: null,
-            })}
-          >
-            View directions
-          </Link>
+          <Address node={node} directions={true} kind="full" />
         </LayoutWithIcon>
 
         <LayoutWithIcon d={icons['phone']} palette="maize">

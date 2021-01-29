@@ -60,6 +60,10 @@ function SmallScreenHeader({ primary, secondary }) {
       <header
         css={{
           borderBottom: `solid 2px ${COLORS.neutral['100']}`,
+          display: 'block',
+          '@media only screen and (min-width: 1129px)': {
+            display: 'none',
+          },
         }}
       >
         <Margins>

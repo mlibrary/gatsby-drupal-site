@@ -1,7 +1,7 @@
 import React from 'react'
-import { Link } from 'gatsby'
 import { Margins, COLORS, SPACING, LINK_STYLES, Icon } from '@umich-lib/core'
 
+import PlainLink from '../plain-link'
 import Nav from './primary-nav'
 import Logo from './logo'
 import SiteSearch from '../site-search'
@@ -10,6 +10,10 @@ export default ({ primary, secondary }) => (
   <header
     css={{
       borderBottom: `solid 2px ${COLORS.neutral[100]}`,
+      display: 'block',
+      '@media only screen and (max-width: 1128px)': {
+        display: 'none',
+      },
     }}
   >
     <Margins>
@@ -50,8 +54,9 @@ export default ({ primary, secondary }) => (
                     }}
                     key={i + text}
                   >
-                    <Link
+                    <PlainLink
                       to={to}
+                      external={to === '/my-account'}
                       css={{
                         ...LINK_STYLES['special'],
                         padding: `${SPACING['S']} 0`,
@@ -71,7 +76,7 @@ export default ({ primary, secondary }) => (
                         />
                       )}
                       <span className="text">{text}</span>
-                    </Link>
+                    </PlainLink>
                   </li>
                 ))}
               </ul>

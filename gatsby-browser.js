@@ -1,4 +1,5 @@
 import React from 'react'
+import SkipLinks from './src/components/skip-links'
 
 export const onClientEntry = () => {
   const {
@@ -16,13 +17,26 @@ export const wrapPageElement = ({ element }) => {
   // including location, data, etc - you don't need to pass it
   return (
     <React.Fragment>
-      {element}
-      <m-chat></m-chat>
+      <div
+        css={{
+          minHeight: '100%',
+          display: 'grid',
+          gridTemplateRows: 'auto auto 1fr',
+          gridTemplateColumns: '100%',
+        }}
+      >
+        <div>
+          <SkipLinks />
+          <m-universal-header></m-universal-header>
+        </div>
+        {element}
+      </div>
+      <m-chat id="chat"></m-chat>
     </React.Fragment>
   )
 }
 
-export const onRouteUpdate = ({ location, prevLocation }) => {
+export const onRouteUpdate = ({ prevLocation }) => {
   const oldPath = prevLocation ? prevLocation.pathname : null
 
   if (oldPath) {

@@ -27,6 +27,8 @@ export const query = graphql`
     field_access {
       processed
     }
+    field_display_hours_
+    field_hours_different_from_build
     relationships {
       field_media_image {
         relationships {
@@ -43,6 +45,7 @@ export const query = graphql`
       }
       field_panels {
         __typename
+        ...textPanelFragment
         ...cardPanelFragment
         ...linkPanelFragment
       }
@@ -53,13 +56,21 @@ export const query = graphql`
         ...sectionCardFragment
       }
       field_visit {
+        weight
         description {
           processed
         }
       }
       field_amenities {
+        name
         description {
           processed
+        }
+      }
+      field_parent_location {
+        __typename
+        ... on node__location {
+          ...locationCardFragment
         }
       }
     }

@@ -9,9 +9,20 @@ export const query = graphql`
     }
     field_background
     field_placement
+    field_title
+    field_link {
+      title
+      uri
+    }
     relationships {
+      field_hero_template {
+        field_machine_name
+      }
       field_hero_images {
         field_orientation
+        field_media_image {
+          alt
+        }
         relationships {
           field_media_image {
             localFile {

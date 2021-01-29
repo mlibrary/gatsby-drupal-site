@@ -20,6 +20,9 @@ const Prose = styled('div')({
   li: {
     marginBottom: SPACING['XS'],
   },
+  '[data-umich-lib-callout]': {
+    maxWidth: '38rem',
+  },
   '[data-umich-lib-callout] + [data-umich-lib-callout]': {
     marginTop: SPACING['L'],
   },

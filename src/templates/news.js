@@ -21,17 +21,15 @@ import HTML from '../components/html'
 import Breadcrumb from '../components/breadcrumb'
 import getNode from '../utils/get-node'
 import transformNodePanels from '../utils/transform-node-panels'
-import PlainLink from '../components/plain-link'
-import IconText from '../components/icon-text'
 import Link from '../components/link'
-
-const qs = require('qs')
+import Share from '../components/share'
 
 export default function NewsTemplate({ data }) {
   const node = getNode(data)
   const { bodyPanels, fullPanels } = transformNodePanels({ node })
   const { field_title_context, body, fields, relationships, created } = node
   const { slug } = fields
+
   const image =
     relationships.field_media_image &&
     relationships.field_media_image.relationships.field_media_image
@@ -114,7 +112,7 @@ export default function NewsTemplate({ data }) {
           )}
 
           <Share
-            url={'https://lib.umich.edu' + slug}
+            url={'https://www.lib.umich.edu' + slug}
             title={field_title_context}
           />
           <StayInTheKnow />
@@ -128,7 +126,7 @@ export default function NewsTemplate({ data }) {
 
 function StayInTheKnow() {
   const newsEmailSignUpURL =
-    'https://visitor.r20.constantcontact.com/manage/optin?v=001cDYOOus5TIdow4bzSVycvi7isF9mU_8aHCjw2GQahcr0Lv7Y_AmQ4Rk6XLOHcZXb6ieJPlgd4mmjhTWZtwsIPqu_3PBhHLOFjEqR0fdjI2A%3D'
+    'https://visitor.r20.constantcontact.com/manage/optin?v=001cDYOOus5TIdow4bzSVycvvOQHeBTvaw-u-NrxVEBWd7CK3DPmM7o6fTauJmkB-PmyMdNV2isg8l8Y3gsqV07er-4bFAo3fZNo1cYkbzohp4%3D'
 
   return (
     <React.Fragment>
@@ -155,80 +153,6 @@ function StayInTheKnow() {
           Sign up for email updates
         </Link>{' '}
       </Text>
-    </React.Fragment>
-  )
-}
-
-function Share({ url, title }) {
-  const emailProps = qs.stringify({
-    subject: title,
-    body: `Read the latest from the University of Michigan Library: ${url}`,
-  })
-
-  const twitterProps = qs.stringify({
-    url,
-    text: `${title} @UMichLibrary`,
-  })
-
-  const fbProps = qs.stringify({
-    u: url,
-    t: title,
-  })
-
-  const options = [
-    {
-      text: 'Facebook',
-      to: `http://www.facebook.com/sharer/sharer.php?${fbProps}`,
-      icon: 'facebook',
-    },
-    {
-      text: 'Twitter',
-      to: `https://twitter.com/share?${twitterProps}`,
-      icon: 'twitter',
-    },
-    {
-      text: 'Email',
-      to: `mailto:?${emailProps}`,
-      icon: 'email',
-    },
-  ]
-
-  return (
-    <React.Fragment>
-      <Heading
-        level={2}
-        size="2XS"
-        css={{
-          fontWeight: '600',
-        }}
-      >
-        Share
-      </Heading>
-      <ul>
-        {options.map(({ text, to, icon, d }, y) => {
-          return (
-            <li key={y + to + text}>
-              <PlainLink
-                to={to}
-                css={{
-                  display: 'inline-block',
-                  padding: `${SPACING['XS']} 0`,
-                  svg: {
-                    color: COLORS.neutral['300'],
-                  },
-                  ':hover': {
-                    textDecoration: 'underline',
-                  },
-                }}
-              >
-                <IconText icon={icon} d={d}>
-                  {text}
-                </IconText>
-              </PlainLink>
-            </li>
-          )
-        })}
-      </ul>
     </React.Fragment>
   )
 }

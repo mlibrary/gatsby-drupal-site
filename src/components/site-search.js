@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { navigate, Link as GatsbyLink } from 'gatsby'
+import { Link as GatsbyLink } from 'gatsby'
 import {
   SPACING,
   Z_SPACE,
@@ -8,15 +8,9 @@ import {
   Alert,
   TYPOGRAPHY,
 } from '@umich-lib/core'
-import {
-  Combobox,
-  ComboboxInput,
-  ComboboxPopover,
-  ComboboxList,
-  ComboboxOption,
-  ComboboxOptionText,
-} from '@reach/combobox'
-import '@reach/dialog/styles.css'
+import { findAll } from 'highlight-words-core'
+import VisuallyHidden from '@reach/visually-hidden'
+import ReachAlert from '@reach/alert'
 import Link from '../components/link'
 import HEADER_MEDIA_QUERIES from '../components/header/header-media-queries'
 import useGoogleTagManager from '../hooks/use-google-tag-manager'
@@ -27,6 +21,7 @@ export default function SiteSearch({ label }) {
   const [query, setQuery] = useState('')
   const [error, setError] = useState(null)
   const [results, setResults] = useState([])
+  const [openResults, setOpenResults] = useState([])
 
   useGoogleTagManager({
     eventName: 'siteSearch',
@@ -34,6 +29,11 @@ export default function SiteSearch({ label }) {
   })
 
   useEffect(() => {
+    // If the query changes, let results open again.
+    if (!openResults) {
+      setOpenResults(true)
+    }
+
     if (!query || !window.__LUNR__) {
       setResults([])
       return
@@ -72,43 +72,63 @@ export default function SiteSearch({ label }) {
         setError({ query: query, error: e })
         return
       } else {
-        console.log('Site search error', e)
+        console.warn('Site search error', e)
       }
     }
+    // eslint-disable-next-line
   }, [query])
 
-  const handleChange = e => setQuery(e.target.value)
-
-  function handleSelect(term) {
-    const page = results.find(r => r.title === term)
-    navigate(page.slug)
+  function handleKeydown(e) {
+    if (e.keyCode === 27) {
+      // ESC key
+      setOpenResults(false)
+    }
   }
 
-  //return null // Turn off while in dev. Combobox breaks hot reloading.
+  useEffect(() => {
+    document.addEventListener('keydown', handleKeydown)
 
+    return () => {
+      document.addEventListener('keydown', handleKeydown)
+    }
+  })
+
+  const handleChange = e => setQuery(cleanQueryStringForLunr(e.target.value))
   return (
-    <Combobox onSelect={item => handleSelect(item)}>
-      <div
-        role="search"
-        aria-label={label}
+    <form
+      css={{
+        position: 'relative',
+        display: 'flex',
+        alignItems: 'center',
+      }}
+      onSubmit={e => {
+        e.preventDefault()
+        setOpenResults(true)
+      }}
+    >
+      <Icon
+        icon="search"
+        size={20}
+        data-site-search-icon
         css={{
-          position: 'relative',
-          display: 'flex',
-          alignItems: 'center',
+          position: 'absolute',
+          left: SPACING['XS'],
+          color: COLORS.neutral['300'],
+        }}
+      />
+      <label
+        css={{
+          width: '100%',
         }}
       >
-        <Icon
-          icon="search"
-          size={20}
-          data-site-search-icon
-          css={{
-            position: 'absolute',
-            left: SPACING['XS'],
-            color: COLORS.neutral['300'],
-          }}
-        />
-        <ComboboxInput
-          aria-label={label}
+        <VisuallyHidden>
+          <p>{label}.</p>
+          <p>
+            To access results, <KeyboardControlIntructions />.
+          </p>
+        </VisuallyHidden>
+        <input
+          id="site-search-input"
           onChange={handleChange}
           placeholder={label}
           type="search"
@@ -133,149 +153,354 @@ export default function SiteSearch({ label }) {
             },
           }}
         />
+      </label>
 
-        {results && (
-          <ComboboxPopover>
-            <div
-              data-site-search-popover-container
+      <ResultsContainer
+        results={results}
+        query={query}
+        error={error}
+        openResults={openResults}
+      />
+    </form>
+  )
+}
+
+function ResultsSummary({ searching, noResults, resultCount }) {
+  if (noResults || !searching) {
+    return null
+  }
+
+  const resultText = `${resultCount} result${resultCount > 1 ? 's' : ''}`
+
+  return (
+    <VisuallyHidden>
+      <ReachAlert>{resultText}</ReachAlert>
+    </VisuallyHidden>
+  )
+}
+
+function ResultsContainer({ results, query, error, openResults }) {
+  const searching = query.length > 0
+  const noResults = searching && results.length === 0
+
+  // Do not render results, if user just hit ESC.
+  // This is reset when the query changes.
+  if (!openResults) {
+    return null
+  }
+
+  return (
+    <React.Fragment>
+      <ResultsSummary
+        searching={searching}
+        noResults={noResults}
+        resultCount={results.length}
+      />
+      <ResultsList
+        searching={searching}
+        noResults={noResults}
+        results={results}
+        query={query}
+        error={error}
+      />
+    </React.Fragment>
+  )
+}
+
+function ResultsList({ searching, noResults, results, query, error }) {
+  // If you're not searching, don't show anything.
+  if (!searching) {
+    return null
+  }
+
+  if (noResults) {
+    return (
+      <Popover error={error}>
+        <NoResults query={query} />
+      </Popover>
+    )
+  }
+
+  return (
+    <Popover error={error}>
+      <p
+        css={{
+          padding: `${SPACING['S']} ${SPACING['L']}`,
+          color: COLORS.neutral['300'],
+          background: COLORS.blue['100'],
+          borderBottom: `solid 1px ${COLORS.neutral['100']}`,
+          kbd: {
+            display: 'inline-block',
+            border: `solid 1px ${COLORS.neutral['200']}`,
+            fontFamily: 'monospace',
+            borderRadius: '4px',
+            fontSize: '0.85rem',
+            padding: `0 ${SPACING['2XS']}`,
+            background: 'white',
+            boxShadow: `0 1px 1px rgba(0, 0, 0, .2), 0 2px 0 0 rgba(255, 255, 255, .7) inset;`,
+          },
+        }}
+        aria-hidden="true"
+        data-site-search-keyboard-instructions
+      >
+        <KeyboardControlIntructions />
+      </p>
+      <ol>
+        <li>
+          <LibrarySearchScopeOption query={query} />
+        </li>
+        {results.slice(0, 100).map((result, index) => (
+          <li
+            key={index}
+            value={result.title}
+            css={{
+              ':not(:last-child)': {
+                borderBottom: `solid 1px ${COLORS.neutral['100']}`,
+              },
+            }}
+          >
+            <GatsbyLink
+              to={'/' + result.slug}
               css={{
-                position: 'absolute',
-                top: '0.25rem',
-                right: 0,
-                background: 'white',
-                zIndex: '999',
-                width: '100%',
-                ...Z_SPACE['16'],
-                maxHeight: '70vh',
-                overflow: 'hidden',
-                overflowY: 'auto',
-                border: `solid 1px ${COLORS.neutral['100']}`,
-                borderRadius: '2px',
-                [HEADER_MEDIA_QUERIES.LARGESCREEN]: {
-                  width: 'calc(100% + 12rem)',
+                display: 'block',
+                padding: `${SPACING['M']} ${SPACING['L']}`,
+                ':hover, :focus': {
+                  outline: 'none',
+                  background: COLORS.teal['100'],
+                  borderLeft: `solid 4px ${COLORS.teal['400']}`,
+                  paddingLeft: `calc(${SPACING['L']} - 4px)`,
+                  '[data-title]': {
+                    textDecoration: 'underline',
+                  },
                 },
               }}
             >
-              <div
-                css={{
-                  borderBottom: `solid 1px`,
-                  borderBottomColor: COLORS.neutral['100'],
-                }}
-              >
-                {error ? (
-                  <Alert intent="error">{error.error.message}</Alert>
-                ) : results.length === 0 ? (
-                  <p
-                    css={{
-                      padding: SPACING['L'],
-                      color: COLORS.neutral['300'],
-                    }}
-                  >
-                    <span
-                      css={{
-                        display: 'block',
-                        color: COLORS.neutral['400'],
-                        ...TYPOGRAPHY['XS'],
-                      }}
-                    >
-                      No results found for:{' '}
-                      <span
-                        css={{
-                          fontWeight: '700',
-                        }}
-                      >
-                        {query}
-                      </span>
-                    </span>
-                    <span
-                      css={{
-                        display: 'block',
-                      }}
-                    >
-                      Try{' '}
-                      <Link to="https://search.lib.umich.edu/">
-                        Library Search
-                      </Link>{' '}
-                      for books, articles, and more.
-                    </span>
-                  </p>
-                ) : (
-                  <p
-                    css={{
-                      padding: `${SPACING['S']} ${SPACING['L']}`,
-                      color: COLORS.neutral['300'],
-                      background: COLORS.blue['100'],
-                    }}
-                  >
-                    ↑↓ to navigate, enter to select, esc to dismiss
-                  </p>
-                )}
-              </div>
-              <ComboboxList
-                persistSelection
-                aria-label="Results"
-                css={{
-                  '[aria-selected="true"] a': {
-                    background: COLORS.teal['100'],
-                    borderLeft: `solid 4px ${COLORS.teal['400']}`,
-                    paddingLeft: `calc(${SPACING['L']} - 4px)`,
-                  },
-                  '[data-reach-combobox-option]:not(:last-of-type)': {
-                    borderBottom: `solid 1px ${COLORS.neutral['100']}`,
-                  },
-                }}
-              >
-                {results.slice(0, 10).map((result, index) => (
-                  <ComboboxOption
-                    key={index}
-                    value={result.title}
-                    css={{
-                      '[data-user-value]': {
-                        fontWeight: '700',
-                        background: COLORS.maize['200'],
-                      },
-                    }}
-                  >
-                    <GatsbyLink
-                      to={'/' + result.slug}
-                      css={{
-                        display: 'block',
-                        padding: `${SPACING['M']} ${SPACING['L']}`,
-                        ':hover [data-title]': {
-                          textDecoration: 'underline',
-                        },
-                      }}
-                    >
-                      <p
-                        data-title
-                        css={{
-                          ...TYPOGRAPHY['XS'],
-                        }}
-                      >
-                        <ComboboxOptionText />
-                      </p>
-                      {result.summary && (
-                        <p
-                          css={{
-                            display: '-webkit-box',
-                            color: COLORS.neutral['300'],
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis',
-                            '-webkit-line-clamp': '2',
-                            '-webkit-box-orient': 'vertical',
-                          }}
-                        >
-                          {result.summary}
-                        </p>
-                      )}
-                    </GatsbyLink>
-                  </ComboboxOption>
-                ))}
-              </ComboboxList>
-            </div>
-          </ComboboxPopover>
-        )}
-      </div>
-    </Combobox>
+              <ResultContent query={query} result={result} />
+            </GatsbyLink>
+          </li>
+        ))}
+      </ol>
+    </Popover>
   )
+}
+
+function KeyboardControlIntructions() {
+  return (
+    <React.Fragment>
+      <kbd>tab</kbd> to navigate, <kbd>enter</kbd> to select, <kbd>esc</kbd> to
+      dismiss
+    </React.Fragment>
+  )
+}
+
+function LibrarySearchScopeOption({ query }) {
+  return (
+    <a
+      href={`https://search.lib.umich.edu/everything?query=${query}&utm_source=lib-site-search`}
+      css={{
+        display: 'grid',
+        gridGap: SPACING['S'],
+        gridTemplateColumns: 'auto 1fr auto',
+        alignItems: 'center',
+        padding: `${SPACING['M']} ${SPACING['L']}`,
+        ':hover, :focus': {
+          outline: 'none',
+          background: COLORS.teal['100'],
+          borderLeft: `solid 4px ${COLORS.teal['400']}`,
+          paddingLeft: `calc(${SPACING['L']} - 4px)`,
+          '[data-title]': {
+            textDecoration: 'underline',
+          },
+        },
+        borderBottom: `solid 1px ${COLORS.neutral['100']}`,
+      }}
+    >
+      <Icon
+        icon="search"
+        size={24}
+        data-site-search-icon
+        css={{
+          left: SPACING['XS'],
+          color: COLORS.neutral['300'],
+        }}
+      />
+      <p
+        data-title
+        css={{
+          ...TYPOGRAPHY['XS'],
+          mark: {
+            background: COLORS.maize['200'] + '!important',
+            fontWeight: '700',
+          },
+          whiteSpace: 'nowrap',
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+        }}
+      >
+        <VisuallyHidden>Search: </VisuallyHidden>
+        {query}
+      </p>
+      <span
+        css={{
+          display: 'inline-block',
+          ...TYPOGRAPHY['3XS'],
+          background: COLORS.blue['100'],
+          border: `solid 1px ${COLORS.neutral['100']}`,
+          borderRadius: '4px',
+          padding: `0 ${SPACING['2XS']}`,
+        }}
+      >
+        Find materials
+      </span>
+    </a>
+  )
+}
+
+function ResultContent({ query, result }) {
+  return (
+    <React.Fragment>
+      <p
+        data-title
+        css={{
+          ...TYPOGRAPHY['XS'],
+          mark: {
+            background: COLORS.maize['200'] + '!important',
+            fontWeight: '700',
+          },
+        }}
+      >
+        <HighlightText query={query} text={result.title} />
+      </p>
+      {result.summary && (
+        <p
+          css={{
+            display: '-webkit-box',
+            color: COLORS.neutral['300'],
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            '-webkit-line-clamp': '2',
+            '-webkit-box-orient': 'vertical',
+            mark: {
+              background: 'none',
+              fontWeight: '600',
+            },
+          }}
+        >
+          <HighlightText query={query} text={result.summary} />
+        </p>
+      )}
+    </React.Fragment>
+  )
+}
+
+/**
+ * Renders the value as text but with spans wrapping the
+ * matching and non-matching segments of text.
+ */
+function HighlightText({ query, text }) {
+  // Escape regexp special characters in `str`
+  function escapeRegexp(str) {
+    return String(str).replace(/([.*+?=^!:${}()|[\]/\\])/g, '\\$1')
+  }
+
+  const chunks = findAll({
+    searchWords: escapeRegexp(query || '').split(/\s+/),
+    textToHighlight: text,
+  })
+
+  const highlightedText = chunks.map(chunk => {
+    const { end, highlight, start } = chunk
+    const textChunk = text.substr(start, end - start)
+
+    if (highlight) {
+      return <mark>{textChunk}</mark>
+    } else {
+      return <React.Fragment>{textChunk}</React.Fragment>
+    }
+  })
+
+  return highlightedText
+}
+
+function NoResults({ query }) {
+  return (
+    <p
+      css={{
+        padding: SPACING['L'],
+        color: COLORS.neutral['300'],
+      }}
+    >
+      <span
+        css={{
+          display: 'block',
+          color: COLORS.neutral['400'],
+          ...TYPOGRAPHY['XS'],
+        }}
+      >
+        No results found for:{' '}
+        <span
+          css={{
+            fontWeight: '700',
+          }}
+        >
+          {query}
+        </span>
+      </span>
+      <span
+        css={{
+          display: 'block',
+        }}
+      >
+        Try{' '}
+        <Link to="https://search.lib.umich.edu/everything?utm_source=lib-site-search">
+          Library Search
+        </Link>{' '}
+        for books, articles, and more.
+      </span>
+    </p>
+  )
+}
+
+function Popover({ children, error }) {
+  return (
+    <div
+      css={{
+        position: 'absolute',
+        top: 'calc(44px + 0.25rem)',
+        right: 0,
+        background: 'white',
+        zIndex: '999',
+        width: '100%',
+        ...Z_SPACE['16'],
+        maxHeight: '70vh',
+        overflow: 'hidden',
+        overflowY: 'auto',
+        border: `solid 1px ${COLORS.neutral['100']}`,
+        borderRadius: '2px',
+        [HEADER_MEDIA_QUERIES.LARGESCREEN]: {
+          width: 'calc(100% + 12rem)',
+        },
+      }}
+    >
+      <div
+        css={{
+          borderBottom: `solid 1px`,
+          borderBottomColor: COLORS.neutral['100'],
+        }}
+      >
+        {error && <Alert intent="error">{error.error.message}</Alert>}
+        {children}
+      </div>
+    </div>
+  )
+}
+
+function cleanQueryStringForLunr(str) {
+  let query = str
+
+  // Ignore quotation marks so they don't throw results -- LIBWEB-649
+  // `""` => ``
+  query = query.replace(/['"]+/g, '')
+
+  return query
 }

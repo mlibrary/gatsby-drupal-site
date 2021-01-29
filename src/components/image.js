@@ -3,7 +3,7 @@ import Img from 'gatsby-image'
 
 import { SPACING } from '@umich-lib/core'
 
-export default function Image({ image, caption }) {
+export default function Image({ image, caption, alt = '' }) {
   return (
     <Img
       css={{
@@ -12,6 +12,7 @@ export default function Image({ image, caption }) {
         marginBottom: SPACING['S'],
       }}
       fluid={image}
+      alt={alt}
     />
   )
 }

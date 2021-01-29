@@ -57,6 +57,7 @@ function DestinationCard({ card }) {
       <div>
         <Heading
           size="S"
+          level={2}
           css={{
             marginBottom: SPACING['2XS'],
           }}

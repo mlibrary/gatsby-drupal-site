@@ -15,15 +15,15 @@ import getNode from '../utils/get-node'
 import Panels from '../components/panels'
 import HTML from '../components/html'
 import DestinationLocationInfo from '../components/destination-location-info'
+import ChatIframe from '../components/chat-iframe'
 
 function DestinationTemplate({ data, ...rest }) {
   const node = getNode(data)
-
   const { field_title_context, fields, body, relationships } = node
-  const image =
-    relationships.field_media_image &&
-    relationships.field_media_image.relationships.field_media_image
-  const imageData = image ? image.localFile.childImageSharp.fluid : null
+  const showChatIframe = fields?.slug === '/ask-librarian'
+  const imageData =
+    relationships?.field_media_image?.relationships?.field_media_image
+      ?.localFile?.childImageSharp?.fluid
 
   return (
     <TemplateLayout node={node}>
@@ -65,16 +65,16 @@ function DestinationTemplate({ data, ...rest }) {
 
           <Panels data={relationships.field_panels} />
         </TemplateContent>
-        {imageData && (
-          <TemplateSide
-            css={{
-              '> div': {
-                border: 'none',
-                paddingLeft: '0',
-                maxWidth: '38rem',
-              },
-            }}
-          >
+        <TemplateSide
+          css={{
+            '> div': {
+              border: 'none',
+              paddingLeft: '0',
+              maxWidth: '38rem',
+            },
+          }}
+        >
+          {imageData && (
             <Img
               css={{
                 width: '100%',
@@ -82,8 +82,10 @@ function DestinationTemplate({ data, ...rest }) {
               }}
               fluid={imageData}
             />
-          </TemplateSide>
-        )}
+          )}
+
+          {showChatIframe && <ChatIframe />}
+        </TemplateSide>
       </Template>
     </TemplateLayout>
   )

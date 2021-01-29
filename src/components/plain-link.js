@@ -1,11 +1,11 @@
 import React from 'react'
 import { Link } from 'gatsby'
 
-function PlainLink({ to, children, ...other }) {
+function PlainLink({ to, children, external, ...other }) {
   /*
     The check if the href is an internal link.
   */
-  if (to.startsWith('/')) {
+  if (to.startsWith('/') && !external) {
     return (
       <Link to={to} {...other}>
         {children}

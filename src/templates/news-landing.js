@@ -27,7 +27,8 @@ export default function NewsLandingTemplate({ data }) {
     processNewsData(data.restNews)
   )
   const newsLibraryUpdates = processNewsData(data.newsLibraryUpdates)
-  const newsMainInitialShow = 15
+  const newsMainInitialShow = 10
+  const newsLibraryUpdatesInitialShow = 20
 
   const {
     title,
@@ -115,22 +116,33 @@ export default function NewsLandingTemplate({ data }) {
             Library Updates
           </Heading>
           {newsLibraryUpdates && (
-            <ol>
-              {newsLibraryUpdates.map((item, i) => (
-                <li
-                  key={'news-item-' + i}
-                  css={{
-                    marginBottom: SPACING['XL'],
-                  }}
-                >
-                  <Card
-                    href={item.href}
-                    title={item.title}
-                    subtitle={item.subtitle}
-                  />
-                </li>
-              ))}
-            </ol>
+            <Expandable>
+              <ol>
+                <ExpandableChildren show={newsLibraryUpdatesInitialShow}>
+                  {newsLibraryUpdates.map((item, i) => (
+                    <li
+                      key={'news-item-' + i}
+                      css={{
+                        marginBottom: SPACING['XL'],
+                      }}
+                    >
+                      <Card
+                        href={item.href}
+                        title={item.title}
+                        subtitle={item.subtitle}
+                      />
+                    </li>
+                  ))}
+                </ExpandableChildren>
+              </ol>
+
+              {newsLibraryUpdates.length > newsLibraryUpdatesInitialShow && (
+                <ExpandableButton
+                  name="updates"
+                  count={newsLibraryUpdates.length}
+                />
+              )}
+            </Expandable>
           )}
         </TemplateSide>
       </Template>
@@ -152,7 +164,7 @@ function processNewsData(data) {
     return {
       title,
       subtitle: moment(created).format('MMMM D, YYYY'),
-      description: body.summary,
+      description: body?.summary,
       href: fields.slug,
       image,
     }
@@ -191,7 +203,12 @@ export const query = graphql`
       }
     }
     newsLibraryUpdates: allNodeNews(
-      filter: { field_news_type: { eq: "library_updates" } }
+      filter: {
+        field_news_type: { eq: "library_updates" }
+        relationships: {
+          field_design_template: { field_machine_name: { eq: "news" } }
+        }
+      }
       sort: { fields: created, order: DESC }
     ) {
       edges {

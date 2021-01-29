@@ -53,7 +53,9 @@ function HoursTable({ data, headingId, dayOfWeek = false }) {
       >
         <thead>
           <tr>
-            <th colSpan="2" />
+            <th colSpan="2" scope="col">
+              <span className="visually-hidden">Day</span>
+            </th>
             {data.headings.map(({ text, subtext, label }, i) => (
               <th
                 scope="col"

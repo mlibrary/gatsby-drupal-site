@@ -54,12 +54,12 @@ export default function UserCard({ name, to, image, title, phone, email }) {
         <Text>{title}</Text>
         {phone && (
           <p>
-            <Link to={phone}>{phone}</Link>
+            <Link to={'tel:' + phone}>{phone}</Link>
           </p>
         )}
         {email && (
           <p>
-            <Link to={email}>{email}</Link>
+            <Link to={'mailto:' + email}>{email}</Link>
           </p>
         )}
       </div>

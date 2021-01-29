@@ -8,8 +8,10 @@ import SEO from '../components/seo'
 import PageHeader from '../components/page-header'
 import HTML from '../components/html'
 import Panels from '../components/panels'
+import transformNodePanels from '../utils/transform-node-panels'
 
 export default function LandingTemplate({ data, ...rest }) {
+  const node = data.page
   const {
     title,
     field_title_context,
@@ -17,8 +19,9 @@ export default function LandingTemplate({ data, ...rest }) {
     fields,
     relationships,
     drupal_internal__nid,
-  } = data.page
+  } = node
   const description = body && body.summary ? body.summary : null
+  const { bodyPanels, fullPanels } = transformNodePanels({ node })
 
   return (
     <Layout drupalNid={drupal_internal__nid}>
@@ -36,8 +39,10 @@ export default function LandingTemplate({ data, ...rest }) {
           relationships.field_media_image.relationships.field_media_image
         }
       />
-      <Margins>{body && <HTML html={body.processed} />}</Margins>
-      <Panels data={relationships.field_panels} />
+      <Margins>
+        {body && <HTML html={body.processed} />} <Panels data={bodyPanels} />
+      </Margins>
+      <Panels data={fullPanels} />
     </Layout>
   )
 }

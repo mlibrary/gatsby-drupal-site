@@ -19,8 +19,8 @@ import HorizontalNavigation from '../components/navigation/horizontal-navigation
 import Panels from '../components/panels'
 import HTML from '../components/html'
 import LocationAside from '../components/location-aside'
-
 import processHorizontalNavigationData from '../components/utilities/process-horizontal-navigation-data'
+import transformNodePanels from '../utils/transform-node-panels'
 
 function renderHorziontalNavigationCSS(isRootPage) {
   if (!isRootPage) {
@@ -33,6 +33,7 @@ function renderHorziontalNavigationCSS(isRootPage) {
 }
 
 function SectionTemplate({ data, ...rest }) {
+  const node = data.page
   const {
     title,
     field_title_context,
@@ -42,7 +43,7 @@ function SectionTemplate({ data, ...rest }) {
     fields,
     relationships,
     drupal_internal__nid,
-  } = data.page
+  } = node
 
   const parentNode = relationships.field_parent_page[0]
   const breadcrumb = fields.breadcrumb
@@ -57,6 +58,7 @@ function SectionTemplate({ data, ...rest }) {
   */
   const summary = isRootPage ? body.summary : parentNode.body.summary
   const description = body && body.summary ? body.summary : null
+  const { bodyPanels, fullPanels } = transformNodePanels({ node })
 
   return (
     <Layout drupalNid={drupal_internal__nid}>
@@ -96,6 +98,8 @@ function SectionTemplate({ data, ...rest }) {
 
               {body && <HTML html={body.processed} />}
             </Prose>
+
+            <Panels data={bodyPanels} />
           </TemplateContent>
           {relationships.field_design_template.field_machine_name ===
             'section_locaside' &&
@@ -121,7 +125,7 @@ function SectionTemplate({ data, ...rest }) {
         </Margins>
       )}
 
-      <Panels data={relationships.field_panels} />
+      <Panels data={fullPanels} />
     </Layout>
   )
 }

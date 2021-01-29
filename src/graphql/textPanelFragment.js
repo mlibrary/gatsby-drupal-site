@@ -5,6 +5,7 @@ export const query = graphql`
     field_title
     id
     field_placement
+    field_border
     relationships {
       field_text_template {
         field_machine_name
@@ -16,6 +17,28 @@ export const query = graphql`
         }
         field_body {
           processed
+        }
+        relationships {
+          field_text_image {
+            relationships {
+              field_media_image {
+                localFile {
+                  childImageSharp {
+                    fluid(maxWidth: 620) {
+                      ...GatsbyImageSharpFluid_noBase64
+                    }
+                  }
+                }
+                relationships {
+                  media__image {
+                    field_media_image {
+                      alt
+                    }
+                  }
+                }
+              }
+            }
+          }
         }
       }
     }

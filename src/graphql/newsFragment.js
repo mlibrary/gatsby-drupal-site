@@ -17,6 +17,9 @@ export const query = graphql`
     }
     field_priority_for_homepage
     relationships {
+      field_panels {
+        ...textPanelFragment
+      }
       field_media_image {
         field_image_caption {
           processed

@@ -19,6 +19,7 @@ import {
 import VisuallyHidden from '@reach/visually-hidden'
 
 const StateContext = createContext()
+const dropdownSideWidth = '24rem'
 
 const StateProvider = ({ reducer, initialState, children }) => (
   <StateContext.Provider value={useReducer(reducer, initialState)}>
@@ -235,7 +236,7 @@ function NavPanel({ items }) {
     >
       <ul
         css={{
-          width: '24rem',
+          width: dropdownSideWidth,
           borderRight: `solid 1px ${COLORS.neutral[100]}`,
           padding: `${SPACING['S']} 0`,
           minHeight: minHeightValue,
@@ -252,6 +253,7 @@ function NavPanel({ items }) {
 function NavPanelItem({ text, to, description, children, i }) {
   const [{ panelOpen }, dispatch] = useStateValue()
   const isOpen = panelOpen === i
+  const noPanelsAreOpen = panelOpen === null
 
   function activeStyles() {
     if (isOpen) {
@@ -322,13 +324,13 @@ function NavPanelItem({ text, to, description, children, i }) {
         </span>
         <Icon icon="navigate_next" />
       </button>
-
       {isOpen && (
         <NavPanelItemLinks
           parentItem={{ text, to, description }}
           items={children}
         />
       )}
+      {noPanelsAreOpen && <NoPanelsAreOpen />}
     </li>
   )
 }
@@ -361,7 +363,7 @@ function NavPanelItemLinks({ parentItem, items }) {
         position: 'absolute',
         right: '0',
         top: '0',
-        width: 'calc(100% - 24rem)',
+        width: `calc(100% - ${dropdownSideWidth})`,
         padding: `${SPACING['XL']} ${SPACING['2XL']}`,
       }}
       ref={ref}
@@ -443,6 +445,34 @@ function NavPanelItemLinks({ parentItem, items }) {
           </Alert>
         </div>
       )}
+    </div>
+  )
+}
+
+function NoPanelsAreOpen() {
+  return (
+    <div
+      css={{
+        position: 'absolute',
+        right: '0',
+        top: '0',
+        width: `calc(100% - ${dropdownSideWidth})`,
+        height: '100%',
+        padding: `${SPACING['XL']} ${SPACING['2XL']}`,
+        background: COLORS.blue['100'],
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        color: COLORS.neutral['300'],
+      }}
+    >
+      <p
+        css={{
+          ...TYPOGRAPHY['2XS'],
+        }}
+      >
+        Select an item from the list to see related links.
+      </p>
     </div>
   )
 }

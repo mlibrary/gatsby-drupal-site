@@ -28,43 +28,56 @@ export default function processSpecialistData({ data }) {
 
   let inheritedNodesIds = []
 
-  const result = flatten
-    .reduce((acc, node, i) => {
-      if (inheritedNodesIds.includes(node.id)) {
-        return acc
-      }
-      const children = flatten.slice(i + 1).filter(n => {
-        const isChild = getChildren(n).find(c => node.id === c.id)
-        return isChild
-      })
-      const userNodes = getUsers(node).concat(
-        children.map(n => getUsers(n)).flat()
-      )
-      const uniqueUserNames = Array.from(
-        new Set(userNodes.map(({ name }) => name))
-      )
-      const uniqueUserNodes = uniqueUserNames.map(name => {
-        return userNodes.find(n => n.name === name)
-      })
-      const users = processUserNodes(uniqueUserNodes)
-      inheritedNodesIds = Array.from(
-        new Set(inheritedNodesIds.concat(children.map(child => child.id)))
-      )
-      const groupEmail = processGroupEmail({
-        node,
-      })
-      const contacts = processContacts({
-        groupEmail,
-        users,
-      })
+  const result = flatten.reduce((acc, node, i) => {
+    if (inheritedNodesIds.includes(node.id)) {
+      return acc
+    }
+    const children = flatten.slice(i + 1).filter(n => {
+      const isChild = getChildren(n).find(c => node.id === c.id)
+      return isChild
+    })
+    const userNodes = getUsers(node).concat(
+      children.map(n => getUsers(n)).flat()
+    )
+    const uniqueUserNames = Array.from(
+      new Set(userNodes.map(({ name }) => name))
+    )
+    const uniqueUserNodes = uniqueUserNames.map(name => {
+      return userNodes.find(n => n.name === name)
+    })
+    const users = processUserNodes(uniqueUserNodes)
+    inheritedNodesIds = Array.from(
+      new Set(inheritedNodesIds.concat(children.map(child => child.id)))
+    )
+    const groupEmail = processGroupEmail({
+      node,
+    })
+    const contacts = processContacts({
+      groupEmail,
+      users,
+    })
 
-      return acc.concat({
-        name: node.name,
-        contacts,
-        category: node.relationships?.field_health_sciences_category?.name,
-      })
-    }, [])
-    .sort((a, b) => a.name.toLowerCase() > b.name.toLowerCase())
+    return acc.concat({
+      name: node.name,
+      contacts,
+      category: node.relationships?.field_health_sciences_category?.name,
+    })
+  }, [])
+
+  const sortedResult = [...result].sort((a, b) => {
+    const nameA = a.name.toLowerCase()
+    const nameB = b.name.toLowerCase()
+
+    if (nameA < nameB) {
+      return -1
+    }
+
+    if (nameA > nameB) {
+      return 1
+    }
+
+    return 0
+  })
 
   function processUserNodes(nodes) {
     return nodes.map(
@@ -98,11 +111,18 @@ export default function processSpecialistData({ data }) {
     ]
   }
 
+  /*
+    If there is a groupEmail, use that.
+    Otherwise use users, and if there are no users,
+    use the Ask a Librarian contact.
+  */
   function processContacts({ users, groupEmail }) {
-    const joined = users.concat(groupEmail)
+    if (groupEmail.length > 0) {
+      return groupEmail
+    }
 
-    if (joined.length > 0) {
-      return joined
+    if (users.length > 0) {
+      return users
     }
 
     return [
@@ -132,5 +152,5 @@ export default function processSpecialistData({ data }) {
     return field_synonym
   }
 
-  return result
+  return sortedResult
 }

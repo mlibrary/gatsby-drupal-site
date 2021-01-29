@@ -54,10 +54,8 @@ function Logo({ size, kind }) {
         lineHeight: '0',
       }}
     >
-      <a href="https://umich.edu/">
-        <UMichBlockM size={size} color={color} />
-      </a>
       <Link to="/">
+        <UMichBlockM size={size} color={color} />
         <UMichLibrary size={size} color={color} />
       </Link>
     </div>

@@ -6,16 +6,71 @@ import * as moment from 'moment'
   on some fields.
 */
 export function getHoursFromNode({ node }) {
-  const { field_hours_different_from_build } = node
-  const { field_hours_open, field_room_building } = node.relationships
+  const { field_display_hours_ } = node
 
-  if (!field_hours_different_from_build && field_room_building) {
-    return prioritizeHours({
-      hours: field_room_building.relationships.field_hours_open,
-    })
+  // Only check for hours if the node says to display hours.
+  if (!field_display_hours_) {
+    return null
   }
 
-  return prioritizeHours({ hours: field_hours_open })
+  const { field_hours_different_from_build } = node
+
+  // Hours come directly from this node.
+  if (field_hours_different_from_build) {
+    const { field_hours_open } = node.relationships
+
+    return prioritizeHours({
+      hours: field_hours_open,
+    })
+  } else {
+    const { field_room_building, field_parent_location } = node.relationships
+
+    // Display hours from field_room_building
+    if (field_room_building && field_room_building.field_display_hours_) {
+      return prioritizeHours({
+        hours: field_room_building.relationships.field_hours_open,
+      })
+    }
+
+    // Display hours from field_parent_location
+    if (field_parent_location && field_parent_location.field_display_hours_) {
+      return prioritizeHours({
+        hours: field_parent_location.relationships.field_hours_open,
+      })
+    }
+
+    // Do not display field_room_building hours, but use the
+    // related parent location from the building.
+    if (
+      field_room_building &&
+      !field_room_building.field_display_hours_ &&
+      field_room_building.relationships.field_parent_location &&
+      field_room_building.relationships.field_parent_location
+        .field_display_hours_
+    ) {
+      return prioritizeHours({
+        hours:
+          field_room_building.relationships.field_parent_location.relationships
+            .field_hours_open,
+      })
+    }
+
+    if (
+      field_parent_location &&
+      !field_parent_location.field_display_hours_ &&
+      field_parent_location.relationships.field_parent_location &&
+      field_parent_location.relationships.field_parent_location
+        .field_display_hours_
+    ) {
+      return prioritizeHours({
+        hours:
+          field_parent_location.relationships.field_parent_location
+            .relationships.field_hours_open,
+      })
+    }
+  }
+
+  return null
 }
 
 /*
@@ -24,6 +79,10 @@ export function getHoursFromNode({ node }) {
 */
 export function findHoursSetByNodeForNow({ node, now }) {
   const allHours = getHoursFromNode({ node })
+
+  if (!allHours) {
+    return null
+  }
 
   const nowHour = allHours.find(set => {
     if (!set.field_date_range) {
@@ -73,13 +132,13 @@ export function displayHours({ node, now }) {
   }
 
   const text =
-    moment(start, 'HHmm').format('h a') +
+    moment(start, 'HHmm').format('ha') +
     ' - ' +
-    moment(end, 'HHmm').format('h a')
+    moment(end, 'HHmm').format('ha')
   const label =
-    moment(start, 'HHmm').format('h a') +
+    moment(start, 'HHmm').format('ha') +
     ' to ' +
-    moment(end, 'HHmm').format('h a')
+    moment(end, 'HHmm').format('ha')
 
   return {
     text,
@@ -101,8 +160,8 @@ function prioritizeHours({ hours }) {
     'paragraph__hours_exceptions',
     'paragraph__fall_and_winter_semester_hours',
   ]
-  const exceptions = hours.find(set => set.__typename === types[0])
-  const fallAndWinter = hours.find(set => set.__typename === types[1])
+  const exceptions = hours.filter(set => set.__typename === types[0])
+  const fallAndWinter = hours.filter(set => set.__typename === types[1])
   const everythingElse = hours.filter(set => !types.includes(set.__typename))
 
   const prioritized = []
