@@ -1,6 +1,32 @@
-const request = require('request')
-const fs = require('fs')
-const readline = require('readline')
+const fetch = require('node-fetch')
+const fs = require('fs');
+
+const redirectsPath = 'public/_redirects'
+
+const downloadRedirectsFile = (async (url, path) => {
+  const res = await fetch(url);
+  const fileStream = fs.createWriteStream(path);
+  
+  await new Promise((resolve, reject) => {
+      res.body.pipe(fileStream);
+      res.body.on("error", reject);
+      fileStream.on('finish', () => {
+        const data = fs.readFileSync(redirectsPath, 'utf8')
+        /**
+         * Just to be sure as a basic check, check if the
+         * file contains the first redirect.
+         */
+        const hasFirstRedirect = data.startsWith('https://umich-lib.netlify.app/* https://lib.umich.edu/:splat 301!')
+
+        if (hasFirstRedirect) {
+          console.log('[redirects] _redirects file was **successfully** created.')
+          resolve()
+        } else {
+          throw `[redirects] Error! Unable to verify first redirect rule.`
+        }
+      })
+    });
+});
 
 /**
  * Redirects are managed in Drupal. This function downloads it
@@ -15,42 +41,11 @@ async function createNetlifyRedirectsFile({ baseUrl }) {
   if (!fs.existsSync(dir)) {
     fs.mkdirSync(dir)
   }
-
-  const firstRedirectLine =
-    'https://umich-lib.netlify.app/* https://lib.umich.edu/:splat 301!'
-  const filePath = dir + '/_redirects'
-
-  let redirectsFile = fs.createWriteStream(filePath)
-
-  await new Promise((resolve, reject) => {
-    request({
-      uri: baseUrl + '/_redirects',
-    })
-      .pipe(redirectsFile)
-      .on('finish', () => {
-        const data = fs.readFileSync(filePath, 'utf8')
-        /**
-         * Just to be sure as a basic check, check if the
-         * file contains the first redirect.
-         */
-        const isValid = data.startsWith(firstRedirectLine)
-
-        if (isValid) {
-          console.log('[redirects] _redirects file was successfully created.')
-          resolve()
-        } else {
-          const msg = `[redirects] Error: Expected the first redirect line to be: ${firstRedirectLine}`
-          throw msg
-        }
-      })
-      .on('error', error => {
-        console.log('[redirects] had an error creating the file.')
-        reject(error)
-      })
-  }).catch(error => {
-    const msg = `[redirects] Error: ${error}`
-    throw msg
-  })
+  
+  downloadRedirectsFile(
+    baseUrl + '/_redirects',
+    redirectsPath
+  )
 }
 
 exports.createNetlifyRedirectsFile = createNetlifyRedirectsFile
