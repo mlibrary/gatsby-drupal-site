@@ -10,7 +10,7 @@
     "@reach/visually-hidden": "^0.15.0",
     "@reach/window-size": "^0.15.0",
     "@umich-lib/components": "^1.0.4",
-    "gatsby": "^3.8.0",
+    "gatsby": "^3.9.1",
     "gatsby-alias-imports": "^1.0.6",
     "gatsby-background-image": "^1.5.3",
     "gatsby-image": "^3.8.0",
@@ -65,6 +65,7 @@
     "entities": "^2.0.0",
     "fetch-retry": "^2.2.3",
     "gatsby-plugin-remove-trailing-slashes": "^3.8.0",
+    "node-fetch": "^2.6.1",
     "prettier": "^1.19.1"
   }
 }
